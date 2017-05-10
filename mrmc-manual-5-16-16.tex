@@ -140,4 +140,18 @@ The code may be compiled using the \verb+compile+ script that is provided.  To p
 The script takes arguments that indicate conditional compiler directives to be used.  Adding the \verb+debug+ argument creates a debuggable version with disabled optimization that produces lots of extra output.  Adding the \verb+timers+ argument creates a special version that outputs timing data on individual parts of the calculation.
 
 By default the script also applies a conditional compiler directive that selects the force field.  The choices are \verb+AMBER+ and \verb+CHARMM19+.   By default \verb+AMBER+ is applied; this can be changed within the script.    The \verb+CHARMM19+ selection should work, but has not been tested recently.   
+
+
+\section{Running the code}
+
+mrmc input-file.txt >output-file.txt
+
+
+\section{FAQs}
+
+Q:  What is U_\mathrm{bb} in equation (2)?
+A:  U_\mathrm{bb} is the backbone potential in the coarse-grain region.  The code uses the bond/angle/dihedral parameters from the all-atom force field for backbone atoms (N, C\alpha, C) to hold the protein together.  The G\overline{o} potential is a residue level potential defined between C\alpha carbon positions, so i and j, in equations (3) and (4), represent residues not in the all-atom region, and r_{ij} is the distance between the C\alpha of residue i and that of residue j.  (Each amino acid in the coarse-grain region is treated as a rigid body.)
+
+
+
 \end{document}               % End of document.
