@@ -152,6 +152,12 @@ mrmc input-file.txt >output-file.txt
 Q:  What is U_\mathrm{bb} in equation (2)?
 A:  U_\mathrm{bb} is the backbone potential in the coarse-grain region.  The code uses the bond/angle/dihedral parameters from the all-atom force field for backbone atoms (N, C\alpha, C) to hold the protein together.  The G\overline{o} potential is a residue level potential defined between C\alpha carbon positions, so i and j, in equations (3) and (4), represent residues not in the all-atom region, and r_{ij} is the distance between the C\alpha of residue i and that of residue j.  (Each amino acid in the coarse-grain region is treated as a rigid body.)
 
+Q:  What is U_\mathrm{CG/AA} in equation (2)?
+A:  U_\mathrm{CG/AA describes the interaction energy between the particles in the all-atom region and the coarse-grain region and they are computed atomistically using the AMBER99SB force field.  As mentioned above, each amino acid in the coarse-grain region is rigid and moves along with its corresponding C\alpha.  (The energies are included in the same term with the interactions between atoms in the all-atom region.)  
+
+
+
+
 
 
 \end{document}               % End of document.
