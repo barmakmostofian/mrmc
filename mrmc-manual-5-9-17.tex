@@ -1,0 +1,193 @@
+% This is a sample LaTeX input file.  (Version of 11 April 1994.)
+%
+% A '%' character causes TeX to ignore all remaining text on the line,
+% and is used for comments like this one.
+
+\documentclass{article}      % Specifies the document class
+
+                             % The preamble begins here.
+\title{How to use the MRMC code}  % Declares the document's title.
+\author{Justin Spiriti}      % Declares the author's name.
+%\date{January 21, 1994}      % Deleting this command produces today's date.
+
+%\newcommand{\ip}[2]{(#1, #2)}
+                             % Defines \ip{arg1}{arg2} to mean
+                             % (arg1, arg2).
+
+%\newcommand{\ip}[2]{\langle #1 | #2\rangle}
+                             % This is an alternative definition of
+                             % \ip that is commented out.
+\setlength{\textwidth}{6.5in}
+\setlength{\textheight}{9in}
+\setlength{\hoffset}{-0.75in}
+\setlength{\voffset}{-1in}
+\usepackage{longtable}
+\begin{document}             % End of preamble and beginning of text.
+
+\maketitle                   % Produces the title.
+
+\section{Form of the potential}
+
+\begin{equation}
+U = U_\mathrm{CG} + U_\mathrm{AA} + U_\mathrm{CG/AA} + U_\mathrm{SEDDD}
+\end{equation}
+
+\begin{eqnarray}
+U_\mathrm{CG} &=& U_\mathrm{bb} + U_\mathrm{G\overline{o}} \\
+U_\mathrm{G\overline{o}} &=& \sum_{i,j} \left\{
+\begin{array}{ll}
+\frac{-\varepsilon}{1-m/n} \left[\left(\frac{r^0_{ij}}{r_{ij}}\right)^{m}-m/n\left(\frac{r^0_{ij}}{r_{ij}}\right)^{n}\right] & \textrm{(native contacts)} \\
+\frac{-\varepsilon}{1-m/n} \left(\frac{r^\mathrm{HC}}{r_{ij}}\right)^{m}& \textrm{(nonnative contacts)} \\
+%0 \\ \frac{r^0_{ij}}{r_{ij} \lleq
+\end{array}
+\right. \\
+\end{eqnarray}
+
+\section{Input files}
+Here is an example input file:
+\begin{verbatim}
+READ FFIELD amber99sb.prm
+READ DEFS defs-amber99sb.txt
+INSERT SEQUENCE
+        ASNN LEU TYR ILE GLN TRP LEU LYS ASP GLY GLY PRO SER
+        SER GLY ARG PRO PRO PRO SERC
+END
+AAREGION none
+READ PDB 1l2y.pdb
+SEDDD 2.0 8.0 0.625 0.000001 data/solvpar-seddd.txt
+CUTOFF 99.0
+GO_HARDCORE 1.7
+GO_NATIVE 8.0
+GO_EXPONENTS 12 10
+GO_WELLDEPTH 1.3
+MOVES
+        backbone 0.5 30.0
+        sidechain 0.0 0.0
+        backrub 0.5 30.0
+end
+TEMP 300.0
+WRITE PSF trpcage.psf
+SAVEFREQ 1000
+PRINTFREQ 100000
+TRAJ dcd/trpcage-go-only-1.3.dcd
+RUN 1000000000
+\end{verbatim}
+
+\section{Commands}
+
+All distances, lengths, and radii are in \AA.  The maximum sizes of the moves are in degrees (except for ligand translational moves, which are in \AA).
+
+\begin{longtable}{|l|p{3.25in}|}
+%\begin{tabular}
+\hline
+Command & Description \\
+\hline
+\verb+READ FFIELD filename+ & Read a force field file (Tinker format).  The force field file should match the force field compiler directive used to compile the program (see below).   \\
+\hline
+\verb+READ DEFS filename+ & Read a definitions file. \\
+\hline
+\verb+READ PDB filename+ & Read a PDB file. (Use after INSERT SEQUENCE and AAREGION commands described below.) \\
+\hline
+\verb+WRITE PSF filename+ & Write a PSF file that can be used for visualizing the trajectory in VMD (see TRAJ command below).  This PSF file should not be used for analysis or simulation in CHARMM or NAMD.  Also, bonds will be missing in the coarse-grained region of the  protein (except for the backbone), although atoms will still be present.  This may result in a strange appearance in VMD. \\
+\hline
+\verb+WRITE PDB filename+ & Write a PDB file containing the current coordinates. \\
+\hline
+\verb+INSERT SEQUENCE+ & Add a protein chain to the system with a sequence on subsequent lines.  For proteins with standard termini, the N-terminal and C-terminal amino acids must be labeled with an extra ``N'' or ``C'' `in the sequence as shown above.  The word ``END'' terminates the list of residues. \\
+\hline
+\verb+INSERT LIGAND residue-name+ & Add a ligand with the specified residue to the system.  The ligand residue must be defined in the definitions file.\\
+\hline
+\verb+AAREGION subset+ & Define the all-atom region.  \verb+subset+ may be \verb+none+, \verb+all+, or a list of residue numbers and ranges. \\
+\hline
+\verb+SEDDD $\epsilon_{0}$ $\epsilon_{1}$ c tol filename +& Set parameters for the electrostatic interaction. \\
+\hline
+\verb+CUTOFF distance+& Set the cutoff (in \AA) for van der Waals and electrostatic interactions. \\
+\hline
+\hline
+\verb+BOXSIZE length+& Enable cubic periodic boundary conditions and set the box length.  I am not sure about the status of this feature in this code. \\
+\hline
+\verb+GO_HARDCORE radius+ & Set the hard core radius ($r^\mathrm{HC}$ above) in \AA. \\
+\hline
+\verb+GO_NATIVE distance+ & Set the cutoff distance for determining native contacts in the Go model. \\
+\hline
+\verb+GO_EXPONENTS m n+ & Set the exponents $m$ and $n$ in the Go model. \\
+\hline
+\verb+GO_WELLDEPTH energy+ & Set the well depth $\varepsilon$ of the Go model. \\
+\hline
+\verb+MOVES+ & Introduces section describing Monte Carlo move sizes and mixture.  Each subsequent line names a move type, then gives the fraction of moves of that type and the maximum size.  The list is terminated by END. \\
+\hline
+\verb+TEMP temperature+& Set the temperature in K. \\
+\hline
+\verb+SEED seed+ & Set the random number seed (an unsigned 64-bit integer).  If set to zero or omitted, a random seed will be chosen based on the time. \\
+\hline
+\verb+TRAJ filename+ & Set the filename for writing the trajectory (DCD file format). \\
+\hline
+\verb+SAVEFREQ int+ & Set the frequency for saving frames to the the trajectory. \\
+\hline
+\verb+PRINTFREQ int+ & Set the frequency for printing energies. \\
+\hline
+\verb+DOCKPREP distance angle bond_angle+& Prepare for docking by centering the ligand on the all-atom region and giving it a random translation, rotation, and bond rotation. \\
+\hline
+\verb+ENERGY+ & Compute and output the energy and its terms. \\
+\hline
+\verb+RUN steps+ or \verb+MC steps+ & Run Monte Carlo for the designated number of trial moves. \\
+\hline
+%\end{tabular}
+\end{longtable}
+
+\section{Compiling the code}
+
+The code may be compiled using the \verb+compile+ script that is provided.  To produce a plain, optimized version of the code, simply invoke the \verb+compile+ script without arguments.  The compilation uses the Intel C++ compiler when compiled on Frank, and the GNU  \verb@g++@ compiler when on Dvorak.
+
+The script takes arguments that indicate conditional compiler directives to be used.  Adding the \verb+debug+ argument creates a debuggable version with disabled optimization that produces lots of extra output.  Adding the \verb+timers+ argument creates a special version that outputs timing data on individual parts of the calculation.
+
+By default the script also applies a conditional compiler directive that selects the force field.  The choices are \verb+AMBER+ and \verb+CHARMM19+.   By default \verb+AMBER+ is applied; this can be changed within the script.    The \verb+CHARMM19+ selection should work, but has not been tested recently.
+
+
+\section{Running the code}
+
+mrmc input-file.txt $>$output-file.txt
+
+
+\section{FAQs}
+
+Q:  What is $U_{bb}$ in equation (2)?
+\\\\
+A: $U_{bb}$ is the backbone potential in the coarse-grain region. The code uses the bond/angle/dihedral parameters from the all-atom force field for backbone atoms (N, C$\alpha$, C) to hold the protein together. The G$\overline{o}$ potential is a residue level potential defined between C$\alpha$ carbon positions, so i and j, in equations (3) and (4), represent residues not in the all-atom region, and $r_{ij}$ is the distance between the C$\alpha$ of residue $i$ and that of residue $j$.  (Each amino acid in the coarse-grain region is treated as a rigid body.)
+\\\\\\
+Q:  What is $U_{CG/AA}$ in equation (1)?
+\\\\
+A:  $U_{CG/AA}$ describes the interaction energy between the particles in the all-atom region and the coarse-grain region and they are computed atomistically using the AMBER99SB force field.  As mentioned above, each amino acid in the coarse-grain region is rigid and moves along with its corresponding C$\alpha$. (The energies are included in the same term with the interactions between atoms in the all-atom region.)
+\\\\\\
+Q:  What is $U_{SEDDD}$ in equation (1)?
+\\\\
+A:  $U_{SEDDD}$ is the solvent-exposure and distance dependent dielectric function following the work of Garden and Zhorov (J.Comput.AidedMol.Des, 2010, 24:91-95). Equations 1 and 2 in their paper has six parameters, three of which are set here and the remaining three, $s_{kl}$, $v_{k}$, and $v_{l}$ are being calculated at every step during the simulation. The MRMC code uses rules to determine which atomistic interactions need to be recomputed as part of the calculation of $\Delta$U for each trial move. One of these rules is that, if the change in the fractional solvation volume $v_{k}$ as a result of a move is greater than the tolerance specified, then any interactions involving that atom will be recomputed. The recommended value ensures that this rule selects enough interactions to give accurate values of $\Delta$U while possibly avoiding some computer time recomputing interactions that do not need to be computed.
+\\\\\\
+Q:  What kind of Monte-Carlo moves is the molecule allowed to perform?
+\\\\
+A:  The moves are as follows:
+backbone -- rotate around a randomly chosen rotatable backbone bond (N-C$\alpha$ or C$\alpha$-C)
+sidechain -- rotate around a randomly chosen rotatable bond in the side chain (in the all-atom region only)
+backrub -- rotate the section of protein between two randomly chosen residues i and j around the axis connecting their alpha carbons
+ligand-bond -- rotate around a randomly chosen rotatable bond in the ligand
+ligand-trans -- translate the ligand by a randomly chosen vector relative to the protein
+ligand-rot -- give the ligand a randomly chosen rotation about its center of mass
+heavy-atom-trans -- select a random non-hydrogen atom and translate it and any hydrogen atoms to which it may be bonded by a random displacement (all-atom region only)
+heavy-atom-rot -- rotate a random non-hydrogen atom and its bonded hydrogens by a random rotation (all-atom region only)
+[heavy-atom-trans and heavy-atom-rot moves are not being used for docking runs at present]
+\\\\
+For each move type, the "size" is the maximum translation or rotation in either angstroms or degrees, and for most of the move types the distribution of move sizes is uniform within that maximum (so for example 30 degrees for a backbone rotation means a randomly chosen angle in the interval from -30 degrees to +30 degrees). For ligand-trans and ligand-rot it is possible to choose a two part distribution, so that for example, "ligand-rot 0.2 1.0 0.5 180.0" means that 20\% of the moves overall will be ligand rotations, and that of these, half will be small rotations with a maximum size of 1 degree, and the other half will be large rotations with a maximum size of 180 degrees. In the example script, the fraction is set to 1.0, so that all the moves will be "large" moves and the second size number is the "real" one (The program will automatically normalize the fraction of moves so that they sum to 1). The user is encouraged to experiment with a number of move mixes, trying to get the best sampling possible for a docking run. There are no hard and fast rules.
+\\\\\\
+Q:  How are the ligands treated?
+\\\\
+A:  The ligands have to be all-atom. Their topologies are defined in the definitions file. Scripts for producing these can be found in the "par-scripts" directory in the github repository.
+\\\\\\
+Q:  What is the Average Probability, which is slightly different from the Acceptance Rate in the output?
+\\\\
+A:  The Avgerage Probability is the average acceptance probability computed over all moves of a given type. The Acceptance Rate is the number of moves of that type which have been accepted, divided by the total number of such moves attempted. This allows to see, for example, if no moves of a certain type are being accepted, whether the acceptance probabilities are only somewhat low (e.g. $10^{-3}$) or really low (e.g. $10^{-100}$).
+\\\\\\
+Q:  What is the reported Energy Deviation?
+\\\\
+A:  The program keeps track of the energy by adding up the calculated $\Delta$U for each acceptance move. Each time the energies are printed the program freshly computes the energy using a different set of subroutines that compute all interactions without regard to whether they have changed in a given move.  This is then compared to the cumulative sum of $\Delta$U's from previously accepted moves. The Energy Deviation is the difference between the two. If this is more than a certain amount (0.001 kcal/mol) the program prints an error message and shuts down. This ensures that the rules for selecting which interactions need to be computed on a given move work correctly. Most of the deviation is normally due to small changes in the values of $v_{k}$ (see discussion above).
+
+
+\end{document}               % End of document.
