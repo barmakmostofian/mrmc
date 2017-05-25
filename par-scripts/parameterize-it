@@ -4,7 +4,7 @@
 #Four letter code for 
 drug=$1
 pdbfile=$drug/$drug.pdb
-export ligand_charge=`awk -f get-charge.awk $pdbfile`
+export ligand_charge=`awk 'BEGIN {FS=""}; { sum+=$79} END {print sum}' $pdbfile`
 cd $drug #scripts are now in ..
 echo "Running antechamber"
 export ACHOME=/opt/amber14/
